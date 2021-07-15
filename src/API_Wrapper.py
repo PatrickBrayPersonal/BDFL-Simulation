@@ -6,8 +6,10 @@ import logging
 import pprint
 from datetime import date
 import pandas as pd
-
 import requests
+import requests_cache
+# this function call will transparent cache new API requests, and use the cahce whenever we make a repeated call
+requests_cache.install_cache()
 
 __all__ = ['API']
 
