@@ -57,13 +57,21 @@ class Reporter():
 
     def roster_report(self, team_id=None):
         '''
-        returns a dataframe of all players owned in the league with 
+        returns a dataframe of all players owned in the league with both team id's
         '''
         franchise_players = self.api.rosters(df = True)
         franchise_players = self.add_player_info(franchise_players, id_field = 'player_id')
         franchise_players = self.add_franchise_info(franchise_players, id_field = 'id_franchise')
+        franchise_players = franchise_players.drop(['week', 'id'], axis = 1)
+        return franchise_players
+    
+    def roster_score_report(self, team_id=None):
+        '''
+        returns a dataframe of all rosters within the leagues with scores for the referenced week in the api class
+        '''
+        franchise_players = self.roster_report()
         franchise_players = self.add_player_scores(franchise_players, id_field = 'player_id', week='YTD')
-        franchise_players = franchise_players.drop(['week', 'status', 'player_id', 'isAvailable', 'id', 'id_score'], axis = 1)
+        franchise_players = franchise_players.drop(['isAvailable', 'player_status', 'id_score'], axis = 1)
         franchise_players.loc[:,'score'] = franchise_players['score'].astype(float)
         return franchise_players
         
