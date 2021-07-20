@@ -94,3 +94,17 @@ class AnalysisFunctions:
                     max_file = fname
         print('Most recent file is :', max_file)
         return max_dir + '/' + max_file
+    
+    
+    def invert_dict(self, my_map):
+        '''
+        returns dictionary my_map inverted
+        '''
+        return {v: k for k, v in my_map.items()}
+        
+        
+        
+        
+        
+        
+        
