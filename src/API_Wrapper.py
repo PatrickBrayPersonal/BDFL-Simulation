@@ -111,13 +111,20 @@ class API(object):
         """
         return self._call_mfl(dict(TYPE='injuries'))
 
-    def nflSchedule(self, weeknum=None):
+    def nflSchedule(self, weeknum='', year=date.today().year, df=False):
         """
         The NFL schedule for one week of the season. The weeknum parameter defaults to the current week
         If specified, weeknum should be a number between representing the week of the NFL schedule
         """
-        params = dict(TYPE='nflSchedule', W=weeknum)
-        return self._call_mfl(params)
+        if weeknum != '':
+            weeknum = '_'+str(weeknum)
+        url = 'https://api.myfantasyleague.com/fflnetdynamic{}/nfl_sched{}.json'.format(year, weeknum)
+
+        results = requests.get(url).json()
+        if df==True:
+            print('TODO')
+        return results
+        
 
     def adp(self, **kwargs):
         """
