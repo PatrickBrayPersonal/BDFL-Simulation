@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import re
+from numpy.random import multivariate_normal
 
 
 class Data_Generator():
@@ -8,7 +9,7 @@ class Data_Generator():
     This class generates the basic data structures needed to execute the simulation
     '''
 
-    def __init__(self, week, api, rep, pos_list, team_id_dict):
+    def __init__(self, week, api, rep, pos_list, team_id_dict, n=10):
         self.week = week
         self.api = api
         self.rep = rep
@@ -18,6 +19,9 @@ class Data_Generator():
         self.plr_proj_dict = self.create_plr_proj_dict()
         self.sched_dict = self.create_sched_dict()
         self.pos_opp_dict = self.create_pos_opp_dict()
+        self.n = n
+        self.mean_order = ['QB1', 'RB1', 'RB2', 'WR1', 'WR2', 'WR3', 'TE1']
+        self.corrs = pd.read_excel('../data/Position_correlations.xlsx', sheet_name='RAW', index_col=0).to_numpy()
         self.score_df = self.create_score_df()
 
     def create_plr_proj_dict(self):
@@ -123,11 +127,22 @@ class Data_Generator():
         roster_df.name_player = roster_df.name_player.str.split(', ').map(lambda x: ' '.join(x[::-1]))
         # Create normalized player name id
         roster_df['norm_name_player'] = roster_df.name_player.apply(self.normalize_name)
-        # roster_df
+        # Add mean points
         roster_df['mean_pts'] = roster_df.apply(lambda x: self.mean_pts(x), axis=1)
-        self.roster_df = roster_df
+        roster_df = self.add_position_rank(roster_df)
+        # Simulate NFL games
+        roster_df = self.add_random_pts(roster_df)
         return roster_df
-        # roster_df['']
+
+    def gen_rand_pts(self, means):
+        '''
+        takes in an array of means scores for each player and outputs a 2d array of n simulations of the game
+        '''
+        # TODO; Covariance = Corr * SQRT(VAR(X)VAR(Y))
+        cov_matrix = self.corrs
+        # Anything that comes in as a 0 should leave as a 0
+        data = multivariate_normal(means, cov_matrix, size=self.n)
+        return data
 
     def normalize_name(self, name):
         name = ''.join(name.lower().split()[0:2])
@@ -135,10 +150,37 @@ class Data_Generator():
         name = regex.sub('', name)
         return name
 
+    def clean_mean_list(self, ls):
+        return [item[0] if len(item) > 0 else 0 for item in ls]
 
+    def find_game_means(self, df, week, team, opp_team):
+        team_mean_list = [df[(df.week == week) & (df.team == team) & (df.pos_rank == pos_rank)].mean_pts.values for pos_rank in self.mean_order]
+        opp_mean_list = [df[(df.week == week) & (df.team == opp_team) & (df.pos_rank == pos_rank)].mean_pts.values for pos_rank in self.mean_order]
+        means = team_mean_list + opp_mean_list
+        return self.clean_mean_list(means)
 
+    def add_position_rank(self, df):
+        df['pos_rank'] = df.groupby(by=['team', 'position', 'week'])['mean_pts'].rank('dense', ascending=False).astype(int)
+        df['pos_rank'] = df.position + df.pos_rank.astype(str)
+        return df
 
-# roster_df['mean_score'] = 
-                                   
-
-
+    def add_random_pts(self, df):
+        df['pts'] = ''
+        for week in range(df.week.min(), df.week.max()+1):
+            teams_observed = ['FA', 'FA*', 'BYE']
+            for team in df[df.week == week].team.unique():
+                if team not in teams_observed:
+                    opp_team = df[(df.week == week) & (df.team == team)].opp.iloc[0]
+                    means = self.find_game_means(df, week, team, opp_team)
+                    teams_observed += [opp_team]
+                    score_mat = self.gen_rand_pts(means)
+                    for i, pos_rank in enumerate(self.mean_order):
+                        team_player = df[(df.week == week) & (df.team == team) & (df.pos_rank == pos_rank)]
+                        opp_player = df[(df.week == week) & (df.team == opp_team) & (df.pos_rank == pos_rank)]
+                        if len(team_player) > 0:
+                            team_idx = team_player.index[0]
+                            df.at[team_idx, 'pts'] = score_mat[i, :]
+                        if len(opp_player) > 0:
+                            opp_idx = opp_player.index[0]
+                            df.at[opp_idx, 'pts'] = score_mat[i, :]
+        return df
