@@ -15,6 +15,7 @@ import pandas as pd
 from API_Wrapper import API
 from Reporter import Reporter
 from Data_Generator import Data_Generator
+from Simulator import Simulator
 
 # this function call will transparent cache new API requests, and use the cahce whenever we make a repeated call
 requests_cache.install_cache()
@@ -59,49 +60,9 @@ team_id_dict = {'Arizona Cardinals': 'ARI',
                 'BYE': 'BYE'
                 }
 week = 1
+n = 10
 # Instatiate Classes
 api = API(leagueid=LEAGUE_ID, user_agent=USER_AGENT)
 rep = Reporter(api=api, week=1)
-# dg = Data_Generator(1, api, rep, pos_list, team_id_dict, n=10)
-
-# dg.to_pickle('data/dg.pckl')
-# api.to_pickle('data/api.pckl')
-# rep.to_pickle('data/rep.pckl')
-# dg.score_df.to_pickle('../data/score_df.pckl')
-
-score_df = pd.read_pickle('../data/score_df.pckl')
-
-
-# =============================================================================
-# =============================================================================
-# =============================================================================
-# Simulate BDFL Season
-# =============================================================================
-n = 10
-sched_list = api.leagueSched()['schedule']['weeklySchedule']
-# TODO: Simulate the playoffs
-# Simulate the bench players
-weeks_rem = range(week, 14)
-matchup_list = [None] * n * len(weeks_rem) * 6
-for run in range(0, n):
-    for week in weeks_rem:
-        # print(sched_list[week - 1])
-        for i, matchup in enumerate(sched_list[week - 1]['matchup']):
-            id0 = matchup['franchise'][0]['id']
-            id1 = matchup['franchise'][1]['id']
-            # TODO: draw from sims not from mean
-            team0_pts = score_df.loc[(score_df.week == week) &
-                                     (score_df.id_franchise == id0) &
-                                     (score_df['start']), 'mean_pts'].sum()
-            team1_pts = score_df.loc[(score_df.week == week) &
-                                     (score_df.id_franchise == id1) &
-                                     (score_df['start']), 'mean_pts'].sum()
-            # print(run, len(weeks_rem), week, i)
-            mu_idx = run*len(weeks_rem)*6+(week-1)*6+i
-            # print(mu_idx)
-            matchup_list[mu_idx] = [run, week, id0, team0_pts, id1, team1_pts]
-            # print(matchup_list[mu_idx])
-matchup_df = pd.DataFrame(matchup_list, columns=['run', 'week', 'id0', 'team0_pts', 'id1', 'team1_pts'])
-matchup_df.loc[matchup_df.team0_pts > matchup_df.team1_pts, 'winner'] = matchup_df.id0
-# TODO: Allow for ties
-matchup_df.winner = matchup_df.winner.fillna(matchup_df.id1)
+dg = Data_Generator(1, api, rep, pos_list, team_id_dict, n)
+sim = Simulator(week, api, rep, dg, n)

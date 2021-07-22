@@ -124,7 +124,6 @@ class API(object):
         if df==True:
             print('TODO')
         return results
-        
 
     def adp(self, **kwargs):
         """
@@ -293,6 +292,17 @@ class API(object):
         An RSS feed of MyFantasyLeague.com site news
         """
         return self._call_mfl(dict(TYPE='siteNews'))
+
+    def leagueSched(self):
+        '''
+        returns the schedule for the MFL teams
+        '''
+        params = dict(
+            TYPE='schedule',
+            L=self.leagueid
+            )
+        self._check_leagueid()
+        return self._call_mfl(params)
 
     def projectedScores(self, playerid, weeknum=None, count=None, position=None):
         """Projected scores for a given playerid in the league's scoring system"""
