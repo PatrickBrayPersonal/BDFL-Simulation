@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np 
 
 pos_list = ['QB', 'RB', 'WR', 'TE']
 team_id_dict = {'Arizona Cardinals' : 'ARI',
@@ -28,7 +29,7 @@ team_id_dict = {'Arizona Cardinals' : 'ARI',
                 'New York Jets' : 'NYJ',
                 'Philadelphia Eagles' : 'PHI',
                 'Pittsburgh Steelers' : 'PIT',
-                'San Francisco 49ers' : 'SF',
+                'San Francisco 49ers' : 'SFO',
                 'Seattle Seahawks' : 'SEA',
                 'Tampa Bay Buccaneers' : 'TB',
                 'Tennessee Titans' : 'TEN',
