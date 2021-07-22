@@ -55,7 +55,7 @@ class Data_Generator():
         self.pos_opp_dict = self.create_pos_opp_dict()
         self.n = n
         self.mean_order = ['QB1', 'RB1', 'RB2', 'WR1', 'WR2', 'WR3', 'TE1']
-        self.corr_mat = pd.read_excel('../data/Position_correlations.xlsx', sheet_name='RAW', index_col=0).to_numpy()
+        self.corr_mat = pd.read_excel('data/Position_correlations.xlsx', sheet_name='RAW', index_col=0).to_numpy()
         self.cov_mat = self.create_cov_mat()
         self.score_df = self.create_score_df()
 
@@ -66,7 +66,7 @@ class Data_Generator():
         '''
         df_list = [None]*len(self.pos_list)
         for i, pos in enumerate(self.pos_list):
-            df = pd.read_csv('../data/Season Projections/20210707/FantasyPros_Fantasy_Football_Projections_' + pos + '.csv')
+            df = pd.read_csv('data/Season Projections/20210707/FantasyPros_Fantasy_Football_Projections_' + pos + '.csv')
             # TODO Print last modified date
             df = df[['Player', 'FPTS']]
             df = df.iloc[1:]
@@ -106,7 +106,7 @@ class Data_Generator():
         '''
         df_list = [None]*len(self.pos_list)
         for i, pos in enumerate(self.pos_list):
-            df = pd.read_excel('../data/Defensive Performance/2020/sportsref_download_' + pos + '.xlsx')
+            df = pd.read_excel('data/Defensive Performance/2020/sportsref_download_' + pos + '.xlsx')
             # TODO Print last modified date
             df.rename(columns={'Unnamed: 0': 'Team',
                                'Fantasy per Game': 'PPG'},
@@ -125,7 +125,7 @@ class Data_Generator():
                       .apply(lambda x: x.set_index('Team').to_dict(orient='index'))\
                       .to_dict()
 
-        assert pos_opp_dict['QB']['NYJ']['PPG'] == 1.1905969896837476,\
+        assert round(pos_opp_dict['QB']['NYJ']['PPG'], 3) == 1.191,\
             'Position dict generation, Jets defense estimated to be ' + str(pos_opp_dict['QB']['NYJ']['PPG'])
         return pos_opp_dict
 
