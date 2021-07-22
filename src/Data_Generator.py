@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
 import re
-from numpy.random import multivariate_normal
+from itertools import product
+from math import sqrt
 
 
 class Data_Generator():
@@ -10,10 +11,10 @@ class Data_Generator():
     '''
 
     def __init__(self, week, api, rep, pos_list, team_id_dict, n=10):
+        np.random.seed(0)
         self.week = week
         self.api = api
         self.rep = rep
-        # TODO: make lib work
         self.pos_list = pos_list
         self.team_id_dict = team_id_dict
         self.plr_proj_dict = self.create_plr_proj_dict()
@@ -21,9 +22,9 @@ class Data_Generator():
         self.pos_opp_dict = self.create_pos_opp_dict()
         self.n = n
         self.mean_order = ['QB1', 'RB1', 'RB2', 'WR1', 'WR2', 'WR3', 'TE1']
-        self.corrs = pd.read_excel('../data/Position_correlations.xlsx', sheet_name='RAW', index_col=0).to_numpy()
+        self.corr_mat = pd.read_excel('../data/Position_correlations.xlsx', sheet_name='RAW', index_col=0).to_numpy()
+        self.cov_mat = self.create_cov_mat()
         self.score_df = self.create_score_df()
-        multivariate_normal.seed(0)
 
     def create_plr_proj_dict(self):
         '''
@@ -141,10 +142,8 @@ class Data_Generator():
         '''
         takes in an array of means scores for each player and outputs a 2d array of n simulations of the game
         '''
-        # TODO; Covariance = Corr * SQRT(VAR(X)VAR(Y))
-        cov_matrix = self.corrs
-        # Anything that comes in as a 0 should leave as a 0
-        data = multivariate_normal(means, cov_matrix, size=self.n)
+        # TODO: Anything that comes in as a 0 should leave as a 0
+        data = np.random.multivariate_normal(means, self.cov_mat, size=self.n)
         return data
 
     def normalize_name(self, name):
@@ -219,4 +218,18 @@ class Data_Generator():
         df.loc[flex_eligible, 'flex_rank'] = df[flex_eligible].groupby(['id_franchise', 'week']).rank('dense', ascending=False).astype(int)['mean_pts']
         df.loc[df.flex_rank < 3, 'start'] = True
         return df
+
+    def create_cov_mat(self):
+        '''
+        creates the covariance matrix by multiplying
+        correlation * sqrt(variance(positionA)*variance(positionB))
+        '''
+        vars_by_pos = [11, 8, 7, 10, 8.5, 8, 7] * 2
+        npos = len(vars_by_pos)
+        var_ls = [sqrt(a * b) for a, b in product(vars_by_pos, vars_by_pos)]
+        var_mat = [None]*npos
+        for i in range(0, npos):
+            var_mat[i] = var_ls[i*npos: i*npos+npos]
+        var_mat = np.array(var_mat)
+        return var_mat @ self.corr_mat
 
