@@ -7,7 +7,6 @@ Mimic Reporter.py
 # import time
 import requests_cache
 # from IPython.core.display import clear_output
-import pandas as pd
 # 1import xml.etree.ElementTree as ET
 # from tqdm import tqdm
 # tqdm.pandas()

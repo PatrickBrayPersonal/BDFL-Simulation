@@ -10,13 +10,46 @@ class Data_Generator():
     This class generates the basic data structures needed to execute the simulation
     '''
 
-    def __init__(self, week, api, rep, pos_list, team_id_dict, n=10):
+    def __init__(self, week, api, rep , n=10):
         np.random.seed(0)
         self.week = week
         self.api = api
         self.rep = rep
-        self.pos_list = pos_list
-        self.team_id_dict = team_id_dict
+        self.pos_list = ['QB', 'RB', 'WR', 'TE']
+        self.team_id_dict = team_id_dict = {'Arizona Cardinals': 'ARI',
+                                            'Atlanta Falcons': 'ATL',
+                                            'Baltimore Ravens': 'BAL',
+                                            'Buffalo Bills': 'BUF',
+                                            'Carolina Panthers': 'CAR',
+                                            'Chicago Bears': 'CHI',
+                                            'Cincinnati Bengals': 'CIN',
+                                            'Cleveland Browns': 'CLE',
+                                            'Dallas Cowboys': 'DAL',
+                                            'Denver Broncos': 'DEN',
+                                            'Detroit Lions': 'DET',
+                                            'Green Bay Packers': 'GBP',
+                                            'Houston Texans': 'HOU',
+                                            'Indianapolis Colts': 'IND',
+                                            'Jacksonville Jaguars': 'JAC',
+                                            'Kansas City Chiefs': 'KCC',
+                                            'Las Vegas Raiders': 'LVR',
+                                            'Los Angeles Chargers': 'LAC',
+                                            'Los Angeles Rams': 'LAR',
+                                            'Miami Dolphins': 'MIA',
+                                            'Minnesota Vikings': 'MIN',
+                                            'New England Patriots': 'NEP',
+                                            'New Orleans Saints': 'NOS',
+                                            'New York Giants': 'NYG',
+                                            'New York Jets': 'NYJ',
+                                            'Philadelphia Eagles': 'PHI',
+                                            'Pittsburgh Steelers': 'PIT',
+                                            'San Francisco 49ers': 'SFO',
+                                            'Seattle Seahawks': 'SEA',
+                                            'Tampa Bay Buccaneers': 'TBB',
+                                            'Tennessee Titans': 'TEN',
+                                            'Washington Football Team': 'WAS',
+                                            'BYE': 'BYE'
+                                            }
         self.plr_proj_dict = self.create_plr_proj_dict()
         self.sched_dict = self.create_sched_dict()
         self.pos_opp_dict = self.create_pos_opp_dict()
