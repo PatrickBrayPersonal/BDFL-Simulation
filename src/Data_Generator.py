@@ -23,6 +23,7 @@ class Data_Generator():
         self.mean_order = ['QB1', 'RB1', 'RB2', 'WR1', 'WR2', 'WR3', 'TE1']
         self.corrs = pd.read_excel('../data/Position_correlations.xlsx', sheet_name='RAW', index_col=0).to_numpy()
         self.score_df = self.create_score_df()
+        multivariate_normal.seed(0)
 
     def create_plr_proj_dict(self):
         '''
@@ -130,6 +131,8 @@ class Data_Generator():
         # Add mean points
         roster_df['mean_pts'] = roster_df.apply(lambda x: self.mean_pts(x), axis=1)
         roster_df = self.add_position_rank(roster_df)
+        # Choose BDFL starters
+        roster_df = self.pick_starters(roster_df)
         # Simulate NFL games
         roster_df = self.add_random_pts(roster_df)
         return roster_df
@@ -145,26 +148,44 @@ class Data_Generator():
         return data
 
     def normalize_name(self, name):
+        '''
+        Accepts a name string, removes all non alphabetic characters and sets to lower
+        '''
         name = ''.join(name.lower().split()[0:2])
         regex = re.compile('[^a-z]')
         name = regex.sub('', name)
         return name
 
     def clean_mean_list(self, ls):
+        '''
+        encapsulates each item of list in a list
+        '''
         return [item[0] if len(item) > 0 else 0 for item in ls]
 
     def find_game_means(self, df, week, team, opp_team):
+        '''
+        returns the mean performance of each player in the relevant position ranks
+        returns in the correct order for the position matrix 'mean_order'
+        '''
         team_mean_list = [df[(df.week == week) & (df.team == team) & (df.pos_rank == pos_rank)].mean_pts.values for pos_rank in self.mean_order]
         opp_mean_list = [df[(df.week == week) & (df.team == opp_team) & (df.pos_rank == pos_rank)].mean_pts.values for pos_rank in self.mean_order]
         means = team_mean_list + opp_mean_list
         return self.clean_mean_list(means)
 
     def add_position_rank(self, df):
+        '''
+        determines how the player rates against other players of their same position on their
+        NFL roster. Used in the correlations matrix
+        '''
         df['pos_rank'] = df.groupby(by=['team', 'position', 'week'])['mean_pts'].rank('dense', ascending=False).astype(int)
         df['pos_rank'] = df.position + df.pos_rank.astype(str)
         return df
 
     def add_random_pts(self, df):
+        '''
+        facilitates the execution of the simulation of n NFL games for players on BDFL rosters
+        correlations between player performances and mean expectations are taken into account
+        '''
         df['pts'] = ''
         for week in range(df.week.min(), df.week.max()+1):
             teams_observed = ['FA', 'FA*', 'BYE']
@@ -184,3 +205,18 @@ class Data_Generator():
                             opp_idx = opp_player.index[0]
                             df.at[opp_idx, 'pts'] = score_mat[i, :]
         return df
+
+    def pick_starters(self, df):
+        '''
+        Finds the top QB and TE, Top 2 WR and RB, then the top two of the remaining RB, TE, and WR
+        for each team in each week and assigns them a True in the start field
+        '''
+        df['fran_pos_rank'] = df.groupby(['id_franchise', 'week', 'position']).rank('dense', ascending=False).astype(int)['mean_pts']
+        # Assign position starters
+        df['start'] = (df.fran_pos_rank == 1) | (df.fran_pos_rank == 2) & (df.position.isin(['RB', 'WR']))
+        # Assign flex starters
+        flex_eligible = (~df.start) & (df.position.isin(['RB', 'WR', 'TE']))
+        df.loc[flex_eligible, 'flex_rank'] = df[flex_eligible].groupby(['id_franchise', 'week']).rank('dense', ascending=False).astype(int)['mean_pts']
+        df.loc[df.flex_rank < 3, 'start'] = True
+        return df
+
