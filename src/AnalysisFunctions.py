@@ -53,10 +53,10 @@ class AnalysisFunctions:
         out_df = pd.DataFrame()
         out_df['MEAN'] = round(df.groupby(by)[col].mean(), 3)
         out_df['MEDIAN'] = df.groupby(by)[col].median()
-        out_df['MAX'] = df.groupby(by)[col].max() 
-        out_df['MIN'] = df.groupby(by)[col].min() 
+        out_df['MAX'] = df.groupby(by)[col].max()
+        out_df['MIN'] = df.groupby(by)[col].min()
         out_df['RANGE'] = out_df['MAX'] - out_df['MIN']
-        out_df['MODE'] = df.groupby(by)[col].agg(lambda x:x.value_counts().index[0])
+        out_df['MODE'] = df.groupby(by)[col].agg(lambda x: x.value_counts().index[0])
         out_df['COUNT'] = df.groupby(by)[col].count()
         out_df['STDEV'] = round(df.groupby(by)[col].std(), 3)
         return out_df
