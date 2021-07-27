@@ -6,7 +6,7 @@ class Simulator():
     Simulates a full BDFL season, evaluating and storing outcomes and results
     '''
 
-    def __init__(self, week, api, rep, dg, n=10):
+    def __init__(self, week, api, rep, dg, n):
         self.week = week
         self.api = api
         self.rep = rep
@@ -47,7 +47,7 @@ class Simulator():
 
     def team_performance(self):
         team_df = pd.DataFrame()
-        team_df['total_wins'] = self.matchup_df.groupby('winner')['week'].agg('count')
+        team_df['total_wins'] = self.matchup_df.rename(columns={'winner': 'team'}).groupby('team')['week'].agg('count')
         team_df['average_wins'] = team_df.total_wins / self.n
         team_df[['total_pts', 'mean_ppg', 'std_ppg', 'max_game', 'min_game']] = \
             self.matchup_df.groupby('id0')['team0_pts'].agg(['sum', 'mean', 'std', 'max', 'min']) + \

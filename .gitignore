@@ -115,3 +115,4 @@ dmypy.json
 *.sqlite
 *.pckl
 *.xlsx
+reference/initialize_league.ipynb

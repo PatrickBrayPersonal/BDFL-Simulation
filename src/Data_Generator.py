@@ -50,12 +50,17 @@ class Data_Generator():
                                             'Washington Football Team': 'WAS',
                                             'BYE': 'BYE'
                                             }
+
         self.plr_proj_dict = self.create_plr_proj_dict()
         self.sched_dict = self.create_sched_dict()
         self.pos_opp_dict = self.create_pos_opp_dict()
         self.n = n
         self.mean_order = ['QB1', 'RB1', 'RB2', 'WR1', 'WR2', 'WR3', 'TE1']
-        self.corr_mat = pd.read_excel('data/Position_correlations.xlsx', sheet_name='RAW', index_col=0).to_numpy()
+        self.vars_by_pos = [11, 8, 7, 10, 8.5, 8, 7]
+        self.vars_df = pd.DataFrame(self.vars_by_pos).T
+        self.vars_df.columns = self.mean_order # TODO: make less ugly
+        self.corr_df = pd.read_excel('data/Position_correlations.xlsx', sheet_name='RAW', index_col=0)
+        self.corr_mat = self.corr_df.to_numpy()
         self.cov_mat = self.create_cov_mat()
         self.score_df = self.create_score_df()
 
@@ -176,6 +181,7 @@ class Data_Generator():
         takes in an array of means scores for each player and outputs a 2d array of n simulations of the game
         '''
         # TODO: Anything that comes in as a 0 should leave as a 0
+        # TODO: SIZE DOESN'T DO WHAT YOU THINK IT DOES
         data = np.random.multivariate_normal(means, self.cov_mat, size=self.n)
         return data
 
@@ -199,8 +205,8 @@ class Data_Generator():
         returns the mean performance of each player in the relevant position ranks
         returns in the correct order for the position matrix 'mean_order'
         '''
-        team_mean_list = [df[(df.week == week) & (df.team == team) & (df.pos_rank == pos_rank)].mean_pts.values for pos_rank in self.mean_order]
-        opp_mean_list = [df[(df.week == week) & (df.team == opp_team) & (df.pos_rank == pos_rank)].mean_pts.values for pos_rank in self.mean_order]
+        team_mean_list = [df[(df.week == week) & (df.team == team) & (df.pos_rank == pos_rank)].mean_pts.values *0.7 for pos_rank in self.mean_order]
+        opp_mean_list = [df[(df.week == week) & (df.team == opp_team) & (df.pos_rank == pos_rank)].mean_pts.values *0.7 for pos_rank in self.mean_order]
         means = team_mean_list + opp_mean_list
         return self.clean_mean_list(means)
 
@@ -232,10 +238,10 @@ class Data_Generator():
                         opp_player = df[(df.week == week) & (df.team == opp_team) & (df.pos_rank == pos_rank)]
                         if len(team_player) > 0:
                             team_idx = team_player.index[0]
-                            df.at[team_idx, 'pts'] = score_mat[i, :]
+                            df.at[team_idx, 'pts'] = score_mat[:, i]
                         if len(opp_player) > 0:
                             opp_idx = opp_player.index[0]
-                            df.at[opp_idx, 'pts'] = score_mat[i, :]
+                            df.at[opp_idx, 'pts'] = score_mat[:, i]
         return df
 
     def pick_starters(self, df):
@@ -257,7 +263,7 @@ class Data_Generator():
         creates the covariance matrix by multiplying
         correlation * sqrt(variance(positionA)*variance(positionB))
         '''
-        vars_by_pos = [11, 8, 7, 10, 8.5, 8, 7] * 2
+        vars_by_pos = self.vars_by_pos * 2
         npos = len(vars_by_pos)
         var_ls = [sqrt(a * b) for a, b in product(vars_by_pos, vars_by_pos)]
         var_mat = [None]*npos
@@ -265,4 +271,3 @@ class Data_Generator():
             var_mat[i] = var_ls[i*npos: i*npos+npos]
         var_mat = np.array(var_mat)
         return var_mat @ self.corr_mat
-

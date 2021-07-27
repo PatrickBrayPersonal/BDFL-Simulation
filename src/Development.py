@@ -1,5 +1,4 @@
-'''
-Mimic Reporter.py
+
 '''
 # import requests
 # import sys
@@ -64,4 +63,34 @@ n = 10
 api = API(leagueid=LEAGUE_ID, user_agent=USER_AGENT)
 rep = Reporter(api=api, week=1)
 dg = Data_Generator(1, api, rep, pos_list, team_id_dict, n)
+sim = Simulator(week, api,' rep, dg, n)'''
+
+
+
+import warnings
+warnings.filterwarnings('ignore')
+from IPython.display import Image
+from API_Wrapper import API
+from Reporter import Reporter
+from Data_Generator import Data_Generator
+from Simulator import Simulator
+# Creds
+LEAGUE_ID = '65522'
+USER_AGENT = 'brayps_user_agent'
+# Current week of the season
+week = 1
+# Number of seasons to run
+n = 20
+assert n >= 10
+# Instatiate Classes
+api = API(leagueid=LEAGUE_ID, user_agent=USER_AGENT)
+rep = Reporter(api, week)
+dg = Data_Generator(week, api, rep, n)
 sim = Simulator(week, api, rep, dg, n)
+
+
+
+# import numpy as np
+cov_mat = np.array([[1, 1.5],[-1, 1]])
+means = [0, 1]
+rand_vars = np.random.multivariate_normal(means, cov_mat, size=10000)
