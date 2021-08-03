@@ -70,10 +70,10 @@ sim = Simulator(week, api,' rep, dg, n)'''
 import warnings
 warnings.filterwarnings('ignore')
 from IPython.display import Image
-from API_Wrapper import API
-from Reporter import Reporter
-from Data_Generator import Data_Generator
-from Simulator import Simulator
+from src.API_Wrapper import API
+from src.Reporter import Reporter
+from src.Data_Generator import Data_Generator
+from src.Simulator import Simulator
 # Creds
 LEAGUE_ID = '65522'
 USER_AGENT = 'brayps_user_agent'
@@ -81,16 +81,22 @@ USER_AGENT = 'brayps_user_agent'
 week = 1
 # Number of seasons to run
 n = 20
-assert n >= 10
 # Instatiate Classes
-api = API(leagueid=LEAGUE_ID, user_agent=USER_AGENT)
-rep = Reporter(api, week)
-dg = Data_Generator(week, api, rep, n)
-sim = Simulator(week, api, rep, dg, n)
+# api = API(leagueid=LEAGUE_ID, user_agent=USER_AGENT)
+# rep = Reporter(api, week)
+# dg = Data_Generator(week, api, rep, n)
+# sim = Simulator(week, api, rep, dg, n)
 
+# # Calculate Playoffs
+df = sim.matchup_df
+# rosters = api.league(df=True)
+df = df.merge(rosters[['id', 'division']], left_on='winner', right_on='id', how='left')
+gb = df.groupby(['run', 'id', 'division'])['winner'].agg('count')
+# Account for pts scored tiebreaker
+# Award at large bids
+gb_div_winners = gb.groupby(['run', 'division']).rank(ascending=False)
+scores_df = \
+    df.groupby(['run', 'id0'])['team0_pts'].agg('sum') + \
+    df.groupby(['run', 'id1'])['team1_pts'].agg('sum')
+gb.merge(scores_df, left_on='id', right_on='id0')
 
-
-# import numpy as np
-cov_mat = np.array([[1, 1.5],[-1, 1]])
-means = [0, 1]
-rand_vars = np.random.multivariate_normal(means, cov_mat, size=10000)
