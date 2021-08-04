@@ -205,8 +205,8 @@ class Data_Generator():
         returns the mean performance of each player in the relevant position ranks
         returns in the correct order for the position matrix 'mean_order'
         '''
-        team_mean_list = [df[(df.week == week) & (df.team == team) & (df.pos_rank == pos_rank)].mean_pts.values *0.7 for pos_rank in self.mean_order]
-        opp_mean_list = [df[(df.week == week) & (df.team == opp_team) & (df.pos_rank == pos_rank)].mean_pts.values *0.7 for pos_rank in self.mean_order]
+        team_mean_list = [df[(df.week == week) & (df.team == team) & (df.pos_rank == pos_rank)].mean_pts.values *0.6 for pos_rank in self.mean_order]
+        opp_mean_list = [df[(df.week == week) & (df.team == opp_team) & (df.pos_rank == pos_rank)].mean_pts.values *0.6 for pos_rank in self.mean_order]
         means = team_mean_list + opp_mean_list
         return self.clean_mean_list(means)
 
