@@ -80,23 +80,11 @@ USER_AGENT = 'brayps_user_agent'
 # Current week of the season
 week = 1
 # Number of seasons to run
-n = 20
+n = 100
 # Instatiate Classes
-# api = API(leagueid=LEAGUE_ID, user_agent=USER_AGENT)
-# rep = Reporter(api, week)
-# dg = Data_Generator(week, api, rep, n)
-# sim = Simulator(week, api, rep, dg, n)
+api = API(leagueid=LEAGUE_ID, user_agent=USER_AGENT)
+rep = Reporter(api, week)
+dg = Data_Generator(week, api, rep, n)
+sim = Simulator(week, api, rep, dg, n)
 
-# # Calculate Playoffs
-df = sim.matchup_df
-# rosters = api.league(df=True)
-df = df.merge(rosters[['id', 'division']], left_on='winner', right_on='id', how='left')
-gb = df.groupby(['run', 'id', 'division'])['winner'].agg('count')
-# Account for pts scored tiebreaker
-# Award at large bids
-gb_div_winners = gb.groupby(['run', 'division']).rank(ascending=False)
-scores_df = \
-    df.groupby(['run', 'id0'])['team0_pts'].agg('sum') + \
-    df.groupby(['run', 'id1'])['team1_pts'].agg('sum')
-gb.merge(scores_df, left_on='id', right_on='id0')
 
