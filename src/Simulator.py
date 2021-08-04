@@ -12,8 +12,11 @@ class Simulator():
         self.rep = rep
         self.dg = dg
         self.n = n
+        self.fran_id_to_name = self.gen_fran_id_to_name()
         self.matchup_df = self.simulate()
         self.team_df = self.team_performance()
+        self.rank_df = self.select_playoff_teams()
+        self.outcome_df = self.team_outcomes()
 
     def simulate(self):
         '''
@@ -52,4 +55,43 @@ class Simulator():
         team_df[['total_pts', 'mean_ppg', 'std_ppg', 'max_game', 'min_game']] = \
             self.matchup_df.groupby('id0')['team0_pts'].agg(['sum', 'mean', 'std', 'max', 'min']) + \
             self.matchup_df.groupby('id1')['team1_pts'].agg(['sum', 'mean', 'std', 'max', 'min'])
-        return team_df
+        return self.show_fran_name(team_df)
+
+    def select_playoff_teams(self):
+        # # Calculate Playoffs
+        rosters = self.api.league(df=True)
+        df = self.matchup_df.merge(rosters[['id', 'division']], left_on='winner', right_on='id', how='left')
+        gb_wins = df.groupby(['run', 'id', 'division'])['winner'].agg('count').reset_index()
+        # Account for pts scored tiebreaker
+        scores_df = \
+            df.groupby(['run', 'id0'])['team0_pts'].agg('sum') + \
+            df.groupby(['run', 'id1'])['team1_pts'].agg('sum')
+        rank_df = gb_wins.merge(scores_df.reset_index(), left_on=['id', 'run'], right_on=['id0', 'run'])
+        # Normalize season points scores between 0 and 1
+        normalized_scores = rank_df[0]/rank_df[0].max()
+        rank_df['score'] = rank_df['winner'] + normalized_scores
+        rank_df['div_rank'] = rank_df.groupby(['run', 'division'])['score'].rank(ascending=False)
+        # Award at large bids
+        rank_df['league_rank'] = rank_df.groupby(['run'])['score'].rank(ascending=False)
+        rank_df['wildcard_rank'] = rank_df.loc[rank_df.div_rank > 1, :]\
+            .groupby(['run'])['score']\
+            .rank(ascending=False)
+        rank_df['made_playoffs'] = (rank_df.wildcard_rank < 3) | (rank_df.div_rank == 1)
+        del rank_df[0]
+        return rank_df
+
+    def team_outcomes(self):
+        outcome_df = pd.DataFrame(self.rank_df.groupby('id')['made_playoffs'].agg('mean'))
+        outcome_df['average_league_finish'] = self.rank_df.groupby('id')['league_rank'].agg('mean')
+        return self.show_fran_name(outcome_df)
+
+    def gen_fran_id_to_name(self):
+        fran_list = self.api.league()['league']['franchises']['franchise']
+        fran_id_to_name = {fran['id']: fran['name'] for fran in fran_list}
+        return fran_id_to_name
+
+    def show_fran_name(self, df):
+        df.index = df.index.map(self.fran_id_to_name)
+        return df
+
+
