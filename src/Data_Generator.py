@@ -3,7 +3,7 @@ import numpy as np
 import re
 from itertools import product
 from math import sqrt
-
+from src.AnalysisFunctions import AnalysisFunctions
 
 class Data_Generator():
     '''
@@ -63,6 +63,7 @@ class Data_Generator():
         self.corr_mat = self.corr_df.to_numpy()
         self.cov_mat = self.create_cov_mat()
         self.score_df = self.create_score_df()
+        self.af = AnalysisFunctions('')
 
     def create_plr_proj_dict(self):
         '''
@@ -271,3 +272,23 @@ class Data_Generator():
             var_mat[i] = var_ls[i*npos: i*npos+npos]
         var_mat = np.array(var_mat)
         return var_mat @ self.corr_mat
+    
+    def read_weekly_projections(self):
+        '''
+        reads the weeks relevant folder in the weekly projections folder
+        returns a datafrom of player projections
+        '''
+        try:
+            proj_list = self.af.files_in_directory(data_folder='data/Weekly Projections/2021/week ' + str(self.week))
+        except:
+            print('*** NEED TO ADD NEW WEEKLY PROJECTIONS ***')
+            raise ValueError
+        df_list = [None] * len(proj_list)
+        for i, proj in enumerate(proj_list):
+            df = pd.read_csv(proj)
+            df = df[['Player', 'FPTS']]
+            df = df.iloc[1:]
+            df_list[i] = df
+        proj_df = pd.concat(df_list)
+        proj_df['week'] = self.week
+        return proj_df
