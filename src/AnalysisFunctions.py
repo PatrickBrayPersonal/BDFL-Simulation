@@ -96,6 +96,33 @@ class AnalysisFunctions:
         return max_dir + '/' + max_file
     
     
+    def files_in_directory(self, pattern=None, data_folder='data'):
+        '''
+        returns a list of the filepaths of each file within the 
+        data_folder directory provided
+
+        Parameters
+        ----------
+        pattern : TYPE, optional
+            DESCRIPTION. The default is None.
+        data_folder : TYPE, optional
+            DESCRIPTION. The default is '/data'.
+
+        Returns
+        -------
+        None.
+
+        '''
+        file_list = []
+        for dirname,subdirs,files in os.walk(data_folder):
+            if pattern:
+                files = fnmatch.filter(files, pattern)
+            for fname in files:
+                full_path = os.path.join(dirname, fname)
+                file_list.append(full_path)
+        return file_list
+        
+    
     def invert_dict(self, my_map):
         '''
         returns dictionary my_map inverted
