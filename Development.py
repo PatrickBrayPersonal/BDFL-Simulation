@@ -66,7 +66,7 @@ dg = Data_Generator(1, api, rep, pos_list, team_id_dict, n)
 sim = Simulator(week, api,' rep, dg, n)'''
 
 
-
+import pandas as pd
 import warnings
 warnings.filterwarnings('ignore')
 from IPython.display import Image
@@ -87,4 +87,18 @@ rep = Reporter(api, week)
 dg = Data_Generator(week, api, rep, n)
 sim = Simulator(week, api, rep, dg, n)
 
+from src.AnalysisFunctions import AnalysisFunctions
+af = AnalysisFunctions('')
 
+
+
+a = dg.read_weekly_projections()
+
+show_df = matchup_df[matchup_df.week == week]
+show_df.id0 = show_df.id0.map(sim.fran_id_to_name)
+show_df.id1 = show_df.id1.map(sim.fran_id_to_name)
+show_df.winner = show_df.winner.map(sim.fran_id_to_name)
+show_df['matchup'] = show_df.id0 + ' vs. ' + show_df.id1
+show_gb = show_df.groupby(['matchup', 'winner'])['run'].agg('count') / n
+show_gb = show_gb[show_gb >= 0.5]
+show_gb = show_gb.reset_index().rename(columns={'run': 'win_probability'})
