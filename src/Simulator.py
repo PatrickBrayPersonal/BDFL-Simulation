@@ -93,5 +93,20 @@ class Simulator():
     def show_fran_name(self, df):
         df.index = df.index.map(self.fran_id_to_name)
         return df
+    
+    def week_outcome(self, week):
+        '''
+        returns the chance of each team winning their matchup that week
+        '''
+        show_df = self.matchup_df[self.matchup_df.week == week]
+        show_df.id0 = show_df.id0.map(self.fran_id_to_name)
+        show_df.id1 = show_df.id1.map(self.fran_id_to_name)
+        show_df.winner = show_df.winner.map(self.fran_id_to_name)
+        show_df['matchup'] = show_df.id0 + ' vs. ' + show_df.id1
+        show_gb = show_df.groupby(['matchup', 'winner'])['run'].agg('count') / self.n
+        show_gb = show_gb[show_gb >= 0.5]
+        show_gb = show_gb.reset_index().rename(columns={'run': 'win_probability'})
+        return show_gb
+        
 
 

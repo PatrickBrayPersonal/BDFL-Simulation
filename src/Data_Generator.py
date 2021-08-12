@@ -15,6 +15,7 @@ class Data_Generator():
         self.week = week
         self.api = api
         self.rep = rep
+        self.af = AnalysisFunctions('')
         self.pos_list = ['QB', 'RB', 'WR', 'TE']
         self.team_id_dict = team_id_dict = {'Arizona Cardinals': 'ARI',
                                             'Atlanta Falcons': 'ATL',
@@ -50,7 +51,7 @@ class Data_Generator():
                                             'Washington Football Team': 'WAS',
                                             'BYE': 'BYE'
                                             }
-
+        self.week_proj_dict = self.read_weekly_projections()
         self.plr_proj_dict = self.create_plr_proj_dict()
         self.sched_dict = self.create_sched_dict()
         self.pos_opp_dict = self.create_pos_opp_dict()
@@ -63,7 +64,7 @@ class Data_Generator():
         self.corr_mat = self.corr_df.to_numpy()
         self.cov_mat = self.create_cov_mat()
         self.score_df = self.create_score_df()
-        self.af = AnalysisFunctions('')
+        
 
     def create_plr_proj_dict(self):
         '''
@@ -170,6 +171,8 @@ class Data_Generator():
         roster_df['norm_name_player'] = roster_df.name_player.apply(self.normalize_name)
         # Add mean points
         roster_df['mean_pts'] = roster_df.apply(lambda x: self.mean_pts(x), axis=1)
+        # Overwrite mean points for current week
+        roster_df.loc[roster_df.week == self.week, 'mean_pts'] = roster_df.norm_name_player.map(self.week_proj_dict).fillna(0)
         roster_df = self.add_position_rank(roster_df)
         # Choose BDFL starters
         roster_df = self.pick_starters(roster_df)
@@ -206,8 +209,8 @@ class Data_Generator():
         returns the mean performance of each player in the relevant position ranks
         returns in the correct order for the position matrix 'mean_order'
         '''
-        team_mean_list = [df[(df.week == week) & (df.team == team) & (df.pos_rank == pos_rank)].mean_pts.values *0.6 for pos_rank in self.mean_order]
-        opp_mean_list = [df[(df.week == week) & (df.team == opp_team) & (df.pos_rank == pos_rank)].mean_pts.values *0.6 for pos_rank in self.mean_order]
+        team_mean_list = [df[(df.week == week) & (df.team == team) & (df.pos_rank == pos_rank)].mean_pts.values *0.7 for pos_rank in self.mean_order]
+        opp_mean_list = [df[(df.week == week) & (df.team == opp_team) & (df.pos_rank == pos_rank)].mean_pts.values *0.7 for pos_rank in self.mean_order]
         means = team_mean_list + opp_mean_list
         return self.clean_mean_list(means)
 
@@ -289,6 +292,9 @@ class Data_Generator():
             df = df[['Player', 'FPTS']]
             df = df.iloc[1:]
             df_list[i] = df
-        proj_df = pd.concat(df_list)
-        proj_df['week'] = self.week
-        return proj_df
+        proj_df = pd.concat(df_list).dropna()
+        norm_name_player = proj_df.Player.apply(self.normalize_name)
+        proj_df.index = norm_name_player
+        del proj_df['Player']
+        proj_dict = proj_df.to_dict()['FPTS']
+        return proj_dict
