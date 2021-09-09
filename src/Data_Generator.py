@@ -73,7 +73,7 @@ class Data_Generator():
         '''
         df_list = [None]*len(self.pos_list)
         for i, pos in enumerate(self.pos_list):
-            df = pd.read_csv('data/Season Projections/20210707/FantasyPros_Fantasy_Football_Projections_' + pos + '.csv')
+            df = pd.read_csv('data/Season Projections/20210831/FantasyPros_Fantasy_Football_Projections_' + pos + '.csv')
             # TODO Print last modified date
             df = df[['Player', 'FPTS']]
             df = df.iloc[1:]
@@ -85,7 +85,7 @@ class Data_Generator():
         df.index = df.norm_player
         del df['Player']
         plr_proj_dict = df.to_dict()['FPTS']
-        assert plr_proj_dict['zachwilson'] == 246.2
+        # assert plr_proj_dict['zachwilson'] == 246.2
         return plr_proj_dict
 
     def create_sched_dict(self):
@@ -161,6 +161,9 @@ class Data_Generator():
         returns the mean scores for each player in the BDFL
         '''
         roster_df = self.rep.roster_report()
+        # JAMES ROBINSON TRADE DELETE!!!
+        # roster_df.loc[roster_df.name_player == 'Robinson, James', ['id_franchise', 'name_franchise']] = ['0008', 'Folk the King']
+        roster_df.loc[roster_df.name_player == 'Fournette, Leonard', ['id_franchise', 'name_franchise']] = ['0008', 'Folk the King']
         # Repeat dataframe rows and add week numbers remaining
         roster_df = pd.DataFrame(np.repeat(roster_df.values, 19-self.week, axis=0), columns=roster_df.columns)
         roster_df['week'] = list(range(self.week, 19)) * len(roster_df.drop_duplicates('player_id'))
