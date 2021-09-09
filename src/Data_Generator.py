@@ -161,9 +161,7 @@ class Data_Generator():
         returns the mean scores for each player in the BDFL
         '''
         roster_df = self.rep.roster_report()
-        # JAMES ROBINSON TRADE DELETE!!!
-        # roster_df.loc[roster_df.name_player == 'Robinson, James', ['id_franchise', 'name_franchise']] = ['0008', 'Folk the King']
-        roster_df.loc[roster_df.name_player == 'Fournette, Leonard', ['id_franchise', 'name_franchise']] = ['0008', 'Folk the King']
+        roster_df = self.trade_simulator(roster_df)
         # Repeat dataframe rows and add week numbers remaining
         roster_df = pd.DataFrame(np.repeat(roster_df.values, 19-self.week, axis=0), columns=roster_df.columns)
         roster_df['week'] = list(range(self.week, 19)) * len(roster_df.drop_duplicates('player_id'))
@@ -301,3 +299,12 @@ class Data_Generator():
         del proj_df['Player']
         proj_dict = proj_df.to_dict()['FPTS']
         return proj_dict
+    
+    def trade_simulator(self, roster_df):
+        '''
+        used for ad-hoc analyses of trade effects on win percentage
+        '''
+        # JAMES ROBINSON TRADE DELETE!!!
+        # roster_df.loc[roster_df.name_player == 'Robinson, James', ['id_franchise', 'name_franchise']] = ['0008', 'Folk the King']
+        # roster_df.loc[roster_df.name_player == 'Fournette, Leonard', ['id_franchise', 'name_franchise']] = ['0008', 'Folk the King']
+        return roster_df
