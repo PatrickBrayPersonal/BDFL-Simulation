@@ -94,11 +94,21 @@ af = AnalysisFunctions('')
 
 a = dg.read_weekly_projections()
 
-show_df = matchup_df[matchup_df.week == week]
-show_df.id0 = show_df.id0.map(sim.fran_id_to_name)
-show_df.id1 = show_df.id1.map(sim.fran_id_to_name)
-show_df.winner = show_df.winner.map(sim.fran_id_to_name)
-show_df['matchup'] = show_df.id0 + ' vs. ' + show_df.id1
-show_gb = show_df.groupby(['matchup', 'winner'])['run'].agg('count') / n
-show_gb = show_gb[show_gb >= 0.5]
-show_gb = show_gb.reset_index().rename(columns={'run': 'win_probability'})
+# =============================================================================
+# show_df = matchup_df[matchup_df.week == week]
+# show_df.id0 = show_df.id0.map(sim.fran_id_to_name)
+# show_df.id1 = show_df.id1.map(sim.fran_id_to_name)
+# show_df.winner = show_df.winner.map(sim.fran_id_to_name)
+# show_df['matchup'] = show_df.id0 + ' vs. ' + show_df.id1
+# show_gb = show_df.groupby(['matchup', 'winner'])['run'].agg('count') / n
+# show_gb = show_gb[show_gb >= 0.5]
+# show_gb = show_gb.reset_index().rename(columns={'run': 'win_probability'})
+# =============================================================================
+import matplotlib.pyplot as plt
+
+matchup_df = sim.matchup_df
+df = matchup_df[(matchup_df.id1 == '0001') & (matchup_df.week == week)]
+plt.hist(df.team1_pts)
+
+
+
