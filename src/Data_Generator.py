@@ -307,4 +307,8 @@ class Data_Generator():
         # JAMES ROBINSON TRADE DELETE!!!
         # roster_df.loc[roster_df.name_player == 'Robinson, James', ['id_franchise', 'name_franchise']] = ['0008', 'Folk the King']
         # roster_df.loc[roster_df.name_player == 'Fournette, Leonard', ['id_franchise', 'name_franchise']] = ['0008', 'Folk the King']
+        # roster_df.loc[roster_df.name_player == 'Robinson, James', ['id_franchise', 'name_franchise']] = ['0008', 'Folk the King']
+        roster_df.loc[roster_df.name_player == 'Elliott, Ezekiel', ['id_franchise', 'name_franchise']] = ['0008', 'Folk the King']
+        roster_df.loc[roster_df.name_player == 'Waddle, Jaylen', ['id_franchise', 'name_franchise']] = ['0011', 'Half Chubb']
+        roster_df.loc[roster_df.name_player == 'Stafford, Matthew', ['id_franchise', 'name_franchise']] = ['0008', 'Folk the King']
         return roster_df
