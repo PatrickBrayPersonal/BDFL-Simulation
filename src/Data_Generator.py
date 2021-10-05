@@ -51,7 +51,7 @@ class Data_Generator():
                                             'Washington Football Team': 'WAS',
                                             'BYE': 'BYE'
                                             }
-        self.week_proj_dict = self.read_weekly_projections()
+        # self.week_proj_dict = self.read_weekly_projections()
         self.plr_proj_dict = self.create_plr_proj_dict()
         self.sched_dict = self.create_sched_dict()
         self.pos_opp_dict = self.create_pos_opp_dict()
@@ -73,8 +73,11 @@ class Data_Generator():
         '''
         df_list = [None]*len(self.pos_list)
         for i, pos in enumerate(self.pos_list):
-            df = pd.read_csv('data/Season Projections/20210831/FantasyPros_Fantasy_Football_Projections_' + pos + '.csv')
+            df = pd.read_csv('data/Season Projections/20210915/FantasyPros_2021_Ros_' + pos + '_Rankings.csv')
             # TODO Print last modified date
+            df.rename(columns={'PROJ. FPTS': 'FPTS',
+                                'PLAYER NAME': 'Player'}, inplace=True)
+
             df = df[['Player', 'FPTS']]
             df = df.iloc[1:]
             df_list[i] = df
@@ -173,7 +176,7 @@ class Data_Generator():
         # Add mean points
         roster_df['mean_pts'] = roster_df.apply(lambda x: self.mean_pts(x), axis=1)
         # Overwrite mean points for current week
-        roster_df.loc[roster_df.week == self.week, 'mean_pts'] = roster_df.norm_name_player.map(self.week_proj_dict).fillna(0)
+        # roster_df.loc[roster_df.week == self.week, 'mean_pts'] = roster_df.norm_name_player.map(self.week_proj_dict).fillna(0)
         roster_df = self.add_position_rank(roster_df)
         # Choose BDFL starters
         roster_df = self.pick_starters(roster_df)
