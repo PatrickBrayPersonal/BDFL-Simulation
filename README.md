@@ -14,3 +14,5 @@
     Reporter.py - combines and organizes calls to API_Wrapper.py to produce relevant outputs
     Data_Generator.py - reads expert rankings and depth chart corrleations to generate random player performances for each game
     Simulator.py - Executes the BDFL schedule calculating wins and losses
+    
+Explation of the approach is available [here](https://nbviewer.org/github/PatrickBrayPersonal/BDFL-Simulation/blob/main/src/Report.ipynb)
